@@ -32,6 +32,10 @@ python3 -m compileall src tests
 ## 贡献原则
 
 - 优先补测试，再改行为。
+- File Organizer 是证据驱动、懂用户偏好的智能文件整理高级顾问，不是 best effort 文件分类器。
+- AI、settings、CLI、agent API 和 GUI 都必须通过同一个 File Organization Runtime 表达判断。
+- 基础用户的自然语言偏好和高级用户的精确 settings 最终都要进入可审计、可修改、可撤销的 runtime policy。
+- 不确定时输出 `unknown`、`needs_more_analysis` 或 `require_confirmation`，不要伪装成确定建议。
 - 所有真实文件移动能力都必须支持 dry-run。
 - 不覆盖、不删除、不猜测用户意图。
 - 不提交只在 macOS 或只在 MSYS2 路径语法下工作的路径逻辑。

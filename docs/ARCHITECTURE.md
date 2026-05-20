@@ -2,17 +2,22 @@
 
 ## 总览
 
-项目采用分层设计：桌面 shell、扫描、虚拟文件系统、指纹、比较、报告、策略、工作流、执行和审计彼此分离。当前仓库只实现了扫描、分类和计划生成的最小 CLI spike，后续核心模型应按 [PLAN.md](../PLAN.md) 重新设计。
+项目采用分层设计：控制层、File Organization Runtime、扫描、虚拟文件系统、指纹、比较、报告、策略、工作流、执行和审计彼此分离。当前仓库只实现了扫描、分类和计划生成的最小 CLI spike，后续核心模型应按 [PLAN.md](../PLAN.md) 和 [RUNTIME.md](RUNTIME.md) 重新设计。
 
 ```mermaid
 flowchart LR
+    NL["Natural-language advisor"] --> Runtime["File Organization Runtime"]
+    Settings["Advanced settings editor"] --> Runtime
+    API["CLI / JSON / Agent API"] --> Runtime
     UI["Desktop shell (.app / .exe)"] --> Bridge["IPC / FFI / sidecar"]
     Bridge --> Core["Core engine"]
+    Core --> Runtime
     A["Current filesystem"] --> B["Scanner"]
-    Core --> B
+    Runtime --> B
     B --> C["Virtual node graph"]
     C --> D["Fingerprint engine"]
     D --> E["Comparator"]
+    Runtime --> P["Preference model / Review decisions"]
     E --> F["Report generator"]
     F --> G["Analysis report"]
     F --> H["Policy / workflow engine"]
@@ -67,6 +72,64 @@ UI 不直接执行扫描、hash、容器遍历、删除、移动或覆盖。
 - 执行已确认的复制、移动、重命名、删除或回滚。
 
 Core engine 必须可以脱离 GUI 独立运行，以支持 CLI、自动化测试和未来 UI 替换。
+
+### File Organization Runtime
+
+Runtime 是判定与执行语义的权威。AI、settings、CLI、agent API 和 GUI 都必须通过 runtime 表达意图，不能各自实现一套判断逻辑。
+
+Runtime 负责：
+
+- 执行 runtime policy。
+- 判断 `equal`、`similar`、`different`、`unknown`、`needs_more_analysis`。
+- 决定 traversal policy：`atomic`、`manifest`、`shallow`、`recursive`、`custom`。
+- 汇总 evidence、confidence、risk level。
+- 生成 `AnalysisReport` 和 `SafePlan`。
+- 决定何时 `require_confirmation`。
+- 把执行动作写入 journal。
+
+Runtime 不允许使用含糊的 best effort 作为结论。如果证据不足，必须输出不确定状态和下一步建议。
+
+### Natural-Language Advisor
+
+把基础用户的人话翻译成可见、可改、可撤销的规则草案。
+
+AI advisor 不能绕过 runtime 直接执行整理动作。它只能：
+
+- 解释用户偏好。
+- 生成 policy 草案。
+- 解释草案影响。
+- 标注风险。
+- 请求用户确认。
+
+### Advanced Settings Editor
+
+给高级用户直接配置 runtime policy。
+
+它应该暴露：
+
+- equal predicates。
+- similar predicates。
+- traversal policies。
+- risk thresholds。
+- workflow templates。
+- exclude/protect rules。
+
+自然语言生成的规则和 settings 里手写的规则最终进入同一套 runtime policy。
+
+### Preference Model / Review Decision Store
+
+“懂你”通过可审计的数据结构实现。
+
+Preference Model 记录：
+
+- 用户如何判断 equal/similar。
+- 用户倾向保留什么版本。
+- 用户对格式、路径、项目和容器的偏好。
+- 用户对风险等级的容忍度。
+
+Review Decision Store 记录用户确认或拒绝过的判断。
+
+这些数据不能被当作当前文件系统状态的权威 cache。它们只描述用户判断标准和历史偏好。
 
 ### Scanner
 
@@ -197,6 +260,10 @@ Journal 是恢复和审计工具，不是文件系统状态的权威缓存。
 - `AnalysisTask`: 可恢复任务。
 - `ComparisonResult`: equal/similar/different/unknown/needs_more_analysis。
 - `AnalysisReport`: 可独立保存和阅读的分析报告。
+- `RuntimePolicy`: 编译后的规则和 workflow。
+- `Preference`: 用户偏好。
+- `ReviewDecision`: 用户历史判断。
+- `SafePlan`: 可解释、可回滚、待确认的整理计划。
 
 ## 平台策略
 
