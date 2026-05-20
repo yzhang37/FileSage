@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from file_organizer.core import build_plan, classify_path
+from filesage.core import build_plan, classify_path
 
 
 class ClassifyPathTests(unittest.TestCase):

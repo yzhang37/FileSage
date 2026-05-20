@@ -1,6 +1,6 @@
 # Contributing
 
-感谢参与 File Organizer。这个项目处理用户文件，因此贡献时请优先考虑安全性、可预览性和可回滚性。
+感谢参与 FileSage。这个项目处理用户文件，因此贡献时请优先考虑安全性、可预览性和可回滚性。
 
 ## 本地开发
 
@@ -32,7 +32,7 @@ python3 -m compileall src tests
 ## 贡献原则
 
 - 优先补测试，再改行为。
-- File Organizer 是证据驱动、懂用户偏好的智能文件整理高级顾问，不是 best effort 文件分类器。
+- FileSage 是证据驱动、懂用户偏好的智能文件整理高级顾问，不是 best effort 文件分类器。
 - AI、settings、CLI、agent API 和 GUI 都必须通过同一个 File Organization Runtime 表达判断。
 - 基础用户的自然语言偏好和高级用户的精确 settings 最终都要进入可审计、可修改、可撤销的 runtime policy。
 - 不确定时输出 `unknown`、`needs_more_analysis` 或 `require_confirmation`，不要伪装成确定建议。

@@ -1,6 +1,5 @@
-"""Safe, explainable file organization tools."""
+"""Backward-compatible imports for the original prototype package name."""
+
+from filesage import __version__
 
 __all__ = ["__version__"]
-
-__version__ = "0.1.0"
-

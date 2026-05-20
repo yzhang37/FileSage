@@ -3,16 +3,16 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "advanced-file-organizer"
+name = "filesage"
 version = "0.1.0"
-description = "A safe, explainable, dry-run-first file organizer."
+description = "Evidence-driven file relationship runtime and safe cleanup planner for duplicates, archives, user policies, and risk-aware reports."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
 authors = [
-    { name = "File Organizer contributors" }
+    { name = "FileSage contributors" }
 ]
-keywords = ["files", "organizer", "automation", "cli"]
+keywords = ["files", "organizer", "duplicates", "archives", "evidence", "cli"]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
     "Environment :: Console",
@@ -26,8 +26,8 @@ classifiers = [
 dependencies = []
 
 [project.scripts]
+filesage = "filesage.cli:main"
 file-organizer = "file_organizer.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
-
