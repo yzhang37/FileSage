@@ -4,21 +4,39 @@
 
 ## 项目定位
 
-File Organizer 是一个高级文件夹整理程序，优先级从高到低是：
+File Organizer 是一个高级文件分析与整理程序，优先级从高到低是：
 
 1. 保护用户文件安全。
-2. 生成可解释的整理计划。
-3. 支持自定义规则和可回滚执行。
-4. 在稳定基础上再加入智能分类、重复文件检测和 UI。
+2. 支持随时中断、随时恢复。
+3. 允许用户定义文件“相等”和“相似”的含义。
+4. 把 analysis-only / report-only 当作一等产品模式。
+5. 生成可解释的分析结果和整理计划。
+6. 支持自定义 workflow 和可回滚执行。
+7. 在稳定基础上再加入容器深度分析、AI 建议和 UI。
 
 ## 技术栈
 
-- Python 3.11+
-- 标准库优先
-- `src/` layout
-- `unittest` 测试
+- 当前原型：Python 3.11+、标准库优先、`src/` layout、`unittest` 测试。
+- 测试版：Python CLI + Python core + PySide6 / Qt for Python GUI，可打包成 macOS `.app` 和 Windows `.exe`。
+- 正式版方向：Rust core engine + Flutter desktop UI。
+- 开发 shell：macOS 使用 zsh；Windows 计划使用 MSYS2 + zsh，不以 PowerShell 作为主要开发环境。
 
-当前不要引入重量级依赖，除非它明显降低复杂度并且 README/文档同步说明原因。
+当前不要引入重量级依赖，除非它明显降低复杂度并且 README/文档同步说明原因。轻量 SQLite 或 JSONL journal 可以考虑，但不能把它设计成文件系统状态的权威缓存。
+
+## 平台与交付
+
+- 最终产品必须能交付 macOS `.app` 和 Windows `.exe` / installer。
+- 不把浏览器或 WebView 当作默认产品路线；文件访问、扫描、hash、journal 和执行动作必须在本地桌面后端完成。
+- UI shell 只负责展示、确认和配置；核心分析逻辑必须与 UI 解耦。
+- UI shell 与 core engine 的边界必须明确，可以通过 IPC、FFI 或 sidecar process 通信；不要让 UI 层直接实现扫描、hash、容器遍历、journal 或删除/移动动作。
+- 打包和发布必须作为产品需求处理：macOS `.app`、Windows `.exe` / installer、代码签名、macOS notarization、升级路径和崩溃日志策略都需要设计。
+- 权限模型必须显式设计：访问 Documents、Desktop、Downloads、外接硬盘和网络盘前，要清楚区分只读扫描、报告导出和危险写入动作。
+- Windows 开发环境按 MSYS2 + zsh 设计文档和命令，但应用必须支持原生 Windows 路径，例如 `C:\Users\...\Downloads`。
+- 所有路径逻辑必须通过 `pathlib` 或目标语言的路径 API，不要手写 `/` 或 `\` 拼接。
+- 不要假设文件系统大小写敏感；Windows/macOS 默认常见配置都可能大小写不敏感。
+- 不要依赖 macOS-only shell 工具、路径或权限行为作为唯一实现。
+- 不要把 POSIX-only 命令当作唯一开发或测试路径；Windows/MSYS2 zsh 是开发环境，但应用行为必须按跨平台本地程序设计。
+- 跨平台测试需要覆盖空格路径、非 ASCII 路径、长文件名、大小写冲突和 Windows 保留名。
 
 ## 常用命令
 
@@ -29,12 +47,22 @@ PYTHONPATH=src python3 -m unittest discover -s tests
 python3 -m compileall src tests
 ```
 
+Windows/MSYS2 zsh 也使用 zsh 风格命令；如果 Python 可执行名是 `python`，可以把上面的 `python3` 换成 `python`。
+
 ## 工作约定
 
 - 默认实现 dry-run 或 plan 功能，避免直接改动真实用户文件。
+- 用户只要专业分析报告是完全合理的完成状态，不要强行引导到执行整理。
 - 新增执行移动文件的能力时，必须同时加入 journal、冲突处理、撤销策略和测试。
+- 硬盘当前状态是唯一真相；数据库或 journal 只能用于恢复、审计和任务检查点。
+- 任务设计要小粒度、幂等、可重试，支持中断后重新验证。
+- 相等和相似必须通过策略表达，不要把比较逻辑写死。
+- 容器文件需要 traversal policy：atomic、manifest、shallow、recursive 或 custom。
+- AI 只能给建议和理由，不能直接决定删除、覆盖或合并。
 - 不要在测试里操作用户主目录、Downloads、Desktop 等真实目录。
 - 不要静默覆盖文件；文件名冲突必须生成唯一目标路径。
+- 不要提交只适用于 macOS 的路径假设；Windows/MSYS2 zsh 是一等开发环境。
+- 不要把浏览器权限模型、WebView 沙盒或 UI 选择作为文件访问设计的基础。
 - 规则行为变更时，同步更新 `docs/RULES.md`。
 - 用户可见行为变更时，同步更新 `README.md` 和 `docs/PRODUCT_SPEC.md`。
 - 架构边界变更时，同步更新 `docs/ARCHITECTURE.md`。
@@ -57,4 +85,3 @@ docs/ARCHITECTURE.md            # 模块边界和数据流
 docs/ROADMAP.md                 # 阶段规划
 docs/RULES.md                   # 规则系统草案
 ```
-
